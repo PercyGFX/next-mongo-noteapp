@@ -10,6 +10,7 @@ import { AiFillEdit, AiFillDelete } from "react-icons/ai";
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [reloadEffect, setReloadEffect] = useState<boolean>(false);
   const [editMode, setEditmode] = useState<boolean>(false);
 
@@ -35,7 +36,9 @@ export default function Home() {
 
   // form submit logic
   const onSubmit = (values: Note, { resetForm }: any) => {
-    console.log(values);
+    //show proccesing
+    const loadingToast = toast.loading("Posting Note...");
+    setLoading(true);
 
     axios
       .post("/api/addnote", values)
@@ -46,6 +49,11 @@ export default function Home() {
       .catch((error: any) => {
         console.log(error);
         toast.error(error.response.data.message);
+      })
+      .finally(() => {
+        // end proccesing
+        toast.dismiss(loadingToast);
+        setLoading(false);
       });
 
     // reset form on submit
@@ -57,6 +65,8 @@ export default function Home() {
 
   // edit note function
   function handleDelete(_id: string) {
+    //show proccesing
+    const loadingToast = toast.loading("Deleting note...");
     axios
       .post("/api/deletenote", { _id })
       .then((result) => {
@@ -66,6 +76,10 @@ export default function Home() {
       .catch((error: any) => {
         console.log(error);
         toast.error(error.response.data.message);
+      })
+      .finally(() => {
+        // end proccesing
+        toast.dismiss(loadingToast);
       });
   }
   return (
@@ -116,8 +130,12 @@ export default function Home() {
               </div>
 
               <div className="flex justify-end">
-                <button type="submit" className="indigo-button">
-                  Submit
+                <button
+                  type="submit"
+                  className="indigo-button"
+                  disabled={loading}
+                >
+                  {loading ? "Posting..." : "Submit"}
                 </button>
               </div>
             </Form>
