@@ -2,6 +2,9 @@ import { ConnectToMongoDB } from "@/utils/database";
 import { NextRequest, NextResponse } from "next/server";
 import NoteModel from "@/models/Note";
 
+export const fetchCache = "force-no-store";
+export const revalidate = false;
+
 ConnectToMongoDB();
 
 // all notes endpoint
@@ -25,5 +28,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-export const fetchCache = "force-no-store";
