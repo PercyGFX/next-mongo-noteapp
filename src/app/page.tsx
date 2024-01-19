@@ -3,6 +3,8 @@ import Header from "@/componants/Header";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Note } from "./types";
+import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Home() {
   // yup validations for the form
@@ -20,11 +22,22 @@ export default function Home() {
   const onSubmit = (values: Note, { resetForm }: any) => {
     console.log(values);
 
+    axios
+      .post("/api/addnote", values)
+      .then((result) => {
+        toast.success("Note added succesfully!");
+      })
+      .catch((error: any) => {
+        console.log(error);
+        toast.error(error.response.data.message);
+      });
+
     // reset form on submit
     resetForm();
   };
   return (
     <main>
+      <Toaster />
       <Header />
       {/* form box start */}
       <div className="flex flex-row justify-center my-6  ">
