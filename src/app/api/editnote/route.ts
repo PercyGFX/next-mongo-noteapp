@@ -5,15 +5,31 @@ import NoteModel from "@/models/Note";
 ConnectToMongoDB();
 
 // add note endpoint
-export async function PATCH(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const reqbody = await request.json();
-    const { _id, note } = reqbody;
+    const { _id, title, description } = reqbody;
+
+    const updatedNote = await NoteModel.findByIdAndUpdate(
+      _id,
+      { title, description },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedNote) {
+      return NextResponse.json(
+        {
+          status: false,
+          message: "Note not found with the provided _id.",
+        },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json(
       {
         status: true,
-        message: "done",
+        message: updatedNote,
       },
       { status: 200 }
     );

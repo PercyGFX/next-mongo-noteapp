@@ -1,18 +1,21 @@
 "use client";
 import Header from "@/componants/Header";
-import { Formik, Field, Form, ErrorMessage } from "formik";
+import { Formik, Field, Form, ErrorMessage, useFormik } from "formik";
 import * as Yup from "yup";
 import { Note } from "./types";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AiFillEdit, AiFillDelete } from "react-icons/ai";
+import { useFormikContext } from "formik";
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [reloadEffect, setReloadEffect] = useState<boolean>(false);
   const [editMode, setEditmode] = useState<boolean>(false);
+  const [currentId, setCurrentId] = useState<string>("");
+  const formikRef = useRef(null);
 
   useEffect(() => {
     // load all notes
@@ -36,6 +39,34 @@ export default function Home() {
 
   // form submit logic
   const onSubmit = (values: Note, { resetForm }: any) => {
+    if (editMode) {
+      const loadingToast = toast.loading("Editing Note...");
+
+      const editNote = {
+        _id: currentId,
+        title: values.title,
+        description: values.description,
+      };
+      axios
+        .post("/api/editnote", editNote)
+        .then((result) => {
+          toast.success("Note Edited succesfully!");
+          setReloadEffect((prev) => !prev);
+        })
+        .catch((error: any) => {
+          console.log(error);
+          toast.error(error.response.data.message);
+        })
+        .finally(() => {
+          // end proccesing
+          toast.dismiss(loadingToast);
+          setLoading(false);
+        });
+
+      resetForm();
+      setEditmode(false);
+      return;
+    }
     //show proccesing
     const loadingToast = toast.loading("Posting Note...");
     setLoading(true);
@@ -60,8 +91,30 @@ export default function Home() {
     resetForm();
   };
 
+  const formik = useFormik({
+    initialValues: initialValues,
+    validationSchema: formvalidation,
+    onSubmit: onSubmit,
+  });
+
   // edit note function
-  function handleEdit(_id: string) {}
+  function handleEdit(_id: string) {
+    const note = notes.find((note) => note._id === _id);
+
+    if (note && formikRef.current) {
+      const currentFormik = formikRef.current as {
+        setValues: (values: any) => void;
+      };
+
+      currentFormik.setValues({
+        title: note.title,
+        description: note.description,
+      });
+
+      setCurrentId(_id);
+      setEditmode(true);
+    }
+  }
 
   // edit note function
   function handleDelete(_id: string) {
@@ -89,11 +142,12 @@ export default function Home() {
       {/* form box start */}
       <div className="flex flex-row justify-center my-6  ">
         <div className="bg-white rounded-md shadow-md mx-2 p-4 w-full md:w-6/12 border border-blue-200">
-          <p className="text-lg my-2">Add a Note</p>
+          <p className="text-lg my-2">{editMode ? "Edit" : "Add"} a Note</p>
           <Formik
             initialValues={initialValues}
             onSubmit={onSubmit}
             validationSchema={formvalidation}
+            innerRef={formikRef}
           >
             <Form>
               <div>
