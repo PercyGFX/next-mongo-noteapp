@@ -45,3 +45,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const fetchCache = "force-no-store";
