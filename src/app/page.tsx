@@ -7,7 +7,6 @@ import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useEffect, useState, useRef } from "react";
 import { AiFillEdit, AiFillDelete } from "react-icons/ai";
-import { useFormikContext } from "formik";
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -37,8 +36,9 @@ export default function Home() {
     description: "",
   };
 
-  // form submit logic
+  //////// form submit logic //////////
   const onSubmit = (values: Note, { resetForm }: any) => {
+    // check if the form in edit mode
     if (editMode) {
       const loadingToast = toast.loading("Editing Note...");
 
@@ -67,7 +67,8 @@ export default function Home() {
       setEditmode(false);
       return;
     }
-    //show proccesing
+
+    // continue form to submit a new note if it is not in edit mode
     const loadingToast = toast.loading("Posting Note...");
     setLoading(true);
 
@@ -91,16 +92,11 @@ export default function Home() {
     resetForm();
   };
 
-  const formik = useFormik({
-    initialValues: initialValues,
-    validationSchema: formvalidation,
-    onSubmit: onSubmit,
-  });
-
-  // edit note function
+  // edit note function ///
   function handleEdit(_id: string) {
     const note = notes.find((note) => note._id === _id);
 
+    // set form values using useref
     if (note && formikRef.current) {
       const currentFormik = formikRef.current as {
         setValues: (values: any) => void;
@@ -111,12 +107,13 @@ export default function Home() {
         description: note.description,
       });
 
+      //set current id and enable edit mode
       setCurrentId(_id);
       setEditmode(true);
     }
   }
 
-  // edit note function
+  // delete note function
   function handleDelete(_id: string) {
     //show proccesing
     const loadingToast = toast.loading("Deleting note...");
