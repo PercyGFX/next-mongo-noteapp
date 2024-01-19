@@ -5,8 +5,22 @@ import * as Yup from "yup";
 import { Note } from "./types";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+import { useEffect, useState } from "react";
+import { AiFillEdit, AiFillDelete } from "react-icons/ai";
 
 export default function Home() {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [reloadEffect, setReloadEffect] = useState<boolean>(false);
+  const [editMode, setEditmode] = useState<boolean>(false);
+
+  useEffect(() => {
+    // load all notes
+    axios.get("/api/allnotes").then((result) => {
+      setNotes(result.data.data);
+      console.log(result.data.data);
+    });
+  }, [reloadEffect]);
+
   // yup validations for the form
   const formvalidation = Yup.object().shape({
     title: Yup.string().required("Title is required"),
@@ -19,6 +33,7 @@ export default function Home() {
     description: "",
   };
 
+  // form submit logic
   const onSubmit = (values: Note, { resetForm }: any) => {
     console.log(values);
 
@@ -26,6 +41,7 @@ export default function Home() {
       .post("/api/addnote", values)
       .then((result) => {
         toast.success("Note added succesfully!");
+        setReloadEffect((prev) => !prev);
       })
       .catch((error: any) => {
         console.log(error);
@@ -35,6 +51,23 @@ export default function Home() {
     // reset form on submit
     resetForm();
   };
+
+  // edit note function
+  function handleEdit(_id: string) {}
+
+  // edit note function
+  function handleDelete(_id: string) {
+    axios
+      .post("/api/deletenote", _id)
+      .then((result) => {
+        toast.success("Note Deleted succesfully!");
+        setReloadEffect((prev) => !prev);
+      })
+      .catch((error: any) => {
+        console.log(error);
+        toast.error(error.response.data.message);
+      });
+  }
   return (
     <main>
       <Toaster />
@@ -92,6 +125,43 @@ export default function Home() {
         </div>
       </div>
       {/* form box end */}
+
+      <div className=" my-10 mx-4 grid grid-cols-1 md:grid-cols-3 lg:md:grid-cols-4 gap-4">
+        {/* card start */}
+
+        {notes && notes.length > 0 ? (
+          notes.map((note: Note) => {
+            return (
+              <div key={note._id} className="bg-white rounded-md p-3 shadow-md">
+                <p className=" font-semibold text-lg py-2">{note.title}</p>
+
+                <hr />
+
+                <p className="text-sm my-2 mb-2">{note.description}</p>
+
+                <div className="flex justify-end my-3">
+                  <AiFillEdit
+                    onClick={() => {
+                      handleEdit(note._id ? note._id : "");
+                    }}
+                    className=" text-2xl mx-2 hover:cursor-pointer  hover:text-sky-900"
+                  />
+                  <AiFillDelete
+                    onClick={() => {
+                      handleDelete(note._id ? note._id : "");
+                    }}
+                    className=" text-2xl hover:cursor-pointer hover:text-sky-900"
+                  />
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div> </div>
+        )}
+
+        {/* card end */}
+      </div>
     </main>
   );
 }
