@@ -12,15 +12,15 @@ export async function POST(request: NextRequest) {
 
     console.log(_id);
 
-    // const deletedNote = await NoteModel.deleteOne({ _id });
-    // console.log(deletedNote);
-    // return NextResponse.json(
-    //   {
-    //     status: true,
-    //     data: "Note deleted successfully",
-    //   },
-    //   { status: 200 }
-    // );
+    const deletedNote = await NoteModel.deleteOne({ _id });
+    console.log(deletedNote);
+    return NextResponse.json(
+      {
+        status: true,
+        data: "Note deleted successfully",
+      },
+      { status: 200 }
+    );
   } catch (error) {
     return NextResponse.json(
       {

@@ -58,7 +58,7 @@ export default function Home() {
   // edit note function
   function handleDelete(_id: string) {
     axios
-      .post("/api/deletenote", _id)
+      .post("/api/deletenote", { _id })
       .then((result) => {
         toast.success("Note Deleted succesfully!");
         setReloadEffect((prev) => !prev);
